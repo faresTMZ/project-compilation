@@ -23,8 +23,7 @@
         "int", INT;
         "bool", BOOL;
         "unit", UNIT;
-        "mutable" MUTABLE;
-
+        "mutable", MUTABLE;
       ] ;
     fun s ->
       try  Hashtbl.find h s

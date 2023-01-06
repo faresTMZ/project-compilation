@@ -25,7 +25,7 @@ let print_value = function
 (* Interprétation d'un programme complet *)
 let eval_prog (p: prog): value =
   
-  (* Initialisation de la mémoire globale *)
+  (*  (* Initialisation de la mémoire globale *)
   let (mem: (int, heap_value) Hashtbl.t) = Hashtbl.create 16 in
 
   (* Création de nouvelles adresses *)
@@ -33,19 +33,39 @@ let eval_prog (p: prog): value =
     let cpt = ref 0 in
     fun () -> incr cpt; !cpt
   in
+  *)
 
   (* Interprétation d'une expression, en fonction d'un environnement
      et de la mémoire globale *)
   let rec eval (e: expr) (env: value Env.t): value = 
     match e with
     | Int n  -> VInt n
+    | Bool b -> VBool b
+    | Uop(Not, e) -> VBool (not (evalb e env))
+    | Uop(Neg, e) -> VInt (-(evali e env))
     | Bop(Add, e1, e2) -> VInt (evali e1 env + evali e2 env)
+    | Bop(Sub, e1, e2) -> VInt (evali e1 env - evali e2 env)
     | Bop(Mul, e1, e2) -> VInt (evali e1 env * evali e2 env)
+    | Bop(Div, e1, e2) -> VInt (evali e1 env / evali e2 env)
+    | Bop(Mod, e1, e2) -> VInt (evali e1 env mod evali e2 env)
+    | Bop(Lt, e1, e2) -> VBool (evali e1 env < evali e2 env)
+    | Bop(Le, e1, e2) -> VBool (evali e1 env <= evali e2 env)
+    | Bop(Eq, e1, e2) -> VBool (evalb e1 env = evalb e2 env)
+    | Bop(Neq, e1, e2) -> VBool (evalb e1 env <> evalb e2 env)
+    | Bop(And, e1, e2) -> VBool (evalb e1 env && evalb e2 env)
+    | Bop(Or, e1, e2) -> VBool (evalb e1 env || evalb e2 env)
+    | _ -> VInt 1
+    
 
   (* Évaluation d'une expression dont la valeur est supposée entière *)
   and evali (e: expr) (env: value Env.t): int = 
     match eval e env with
     | VInt n -> n
+    | _ -> assert false
+
+  and evalb (e: expr) (env: value Env.t): bool =
+    match eval e env with
+    | VBool b -> b
     | _ -> assert false
   in
 

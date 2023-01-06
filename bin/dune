@@ -1,0 +1,9 @@
+(executables
+ (public_names mmli mmlcat)
+ (names mmli mmlcat))
+
+(menhir
+ (modules mmlparser))
+
+(ocamllex
+ (modules mmllexer))

@@ -24,17 +24,16 @@ let type_prog prog =
   and type_expr e tenv = match e with
     | Int _  -> TInt
     | Bool _ -> TBool
-    | Unit _ -> TUnit
-    | String _ -> TStrct
-    | Neg e -> check e TInt tenv; TInt
-    | Not e -> chech e TBool tenv; TBool
+    | Unit -> TUnit
+    | Uop(Neg, e) -> check e TInt tenv; TInt
+    | Uop(Not, e) -> check e TBool tenv; TBool
     | Bop((Add | Mul | Sub | Div | Mod), e1, e2) ->
        check e1 TInt tenv; check e2 TInt tenv; TInt
-    | Bop(Eq | Neq, e1, e2) -> let typ1 = type_expr e1 tenv in check e1 typ1 tenv; TBool
-    | Bop(Lt | Le, e1 , e2) -> check e1 TInt tenv; check e2 TInt tenv; TBool
-    | Bop(And | Or, e1 , e2) -> check e1 TBool tenv; check e2 TBool tenv; TBool
+    (*| Bop((Eq | Neq), e1, e2) -> let typ1 = type_expr e1 tenv in check e1 typ1 tenv; TBool*)
+    | Bop((Lt | Le), e1 , e2) -> check e1 TInt tenv; check e2 TInt tenv; TBool
+    | Bop((And | Or), e1 , e2) -> check e1 TBool tenv; check e2 TBool tenv; TBool
     | Var x -> type_expr (SymTbl.find x tenv) tenv
-    | Let(x, e1, e2) ->
+    (*| Let(x, e1, e2) ->
       let t1 = type_expr e1  tenv in
       let t2 = type_expr e2 (SymTbl.add x t1 tenv) in t2
     | If(e0, e1, e2) ->
@@ -44,5 +43,11 @@ let type_prog prog =
     | App(e1, e2) ->
       let Fun(t2, t1) = type_expr e1 tenv in
       check e2 t2 tenv; t1
+    | Seq(e1, e2) ->
+      let t1 = type_expr e1 tenv in
+      if t1 <> TUnit then (Printf.sprintf "expected type Unit but got %s"  (typ_to_string t1));
+      type_expr e2 tenv*)
+    | _ -> TUnit
+    (* il manque struct*)
   in
   type_expr prog.code SymTbl.empty
