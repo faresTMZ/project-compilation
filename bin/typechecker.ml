@@ -11,9 +11,6 @@ let type_error ty_actual ty_expected =
   error (Printf.sprintf "expected %s but got %s" 
            (typ_to_string ty_expected) (typ_to_string ty_actual))
 
-let  wrong_type =
-  error (Printf.sprintf "expected 'a -> 'a here !")
-
 (* Vérification des types d'un programme *)
 let type_prog prog =
 
@@ -44,9 +41,11 @@ let type_prog prog =
     | Fun (x, t1, e) -> let t2 = type_expr e (SymTbl.add x t1 tenv) in TFun(t1, t2)
     | App (e1, e2) -> begin
       match type_expr e1 tenv with
-        | TFun(t2, t1) -> check e2 t2 tenv; t1
-        | _ -> wrong_type
-      end
+      | TFun(t2, t1) -> 
+        let typ_e2 = type_expr e2 tenv in
+        if t2 = typ_e2 then t1 else type_error t2 typ_e2
+      | _ -> error (Printf.sprintf "expected TFun") 
+    end
     | Seq (e1, e2) ->
       let t1 = type_expr e1 tenv in
       if t1 <> TUnit then (Printf.printf "expected type Unit but got %s"  (typ_to_string t1));

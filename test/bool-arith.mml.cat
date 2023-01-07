@@ -1,3 +1,3 @@
 
 
-(((true || (true && x)) == y) != ((not  r) || true))
+(((true || (true && false)) == true) != ((not  false) || true))
