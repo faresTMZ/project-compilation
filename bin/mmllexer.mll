@@ -88,10 +88,13 @@ rule token = parse
         { RARROW }
     | "()"
         { UNIT }
+    | ident as i
+        { keyword_or_ident i }
     | _
         { raise (Lexing_error ("unknown character : " ^ (lexeme lexbuf))) }
     | eof
         { EOF }
+
 
 and comment = parse
     | "*)"
@@ -102,3 +105,4 @@ and comment = parse
         { comment lexbuf }
     | eof
         { raise (Lexing_error "unterminated comment") }
+
