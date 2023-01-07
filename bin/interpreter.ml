@@ -59,7 +59,12 @@ let eval_prog (p: prog): value =
     | Let(x, e1, e2) -> let eval1 = eval e1 env in
       eval e2 (Env.add x eval1 env)
     | If(e1, e2, e3) -> if (evalb e1 env) then (eval e2 env) else (eval e3 env)
+    (* | App(e1, e2) -> 
+      let e2 = eval e2 env in
+      let (VClos(param, body, env)) = eval e1 env in
+      eval (Env.add param e2 env) body *)
     (* | Fun(s, t, e) ->
+
     | App(e1, e2) -> *)
       (* let eval2 = eval e2 env in
       (evalf e1) eval2 *)
