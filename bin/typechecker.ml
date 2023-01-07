@@ -10,7 +10,9 @@ let error s = raise (Type_error s)
 let type_error ty_actual ty_expected =
   error (Printf.sprintf "expected %s but got %s" 
            (typ_to_string ty_expected) (typ_to_string ty_actual))
-(* vous pouvez ajouter d'autres types d'erreurs *)
+
+let  wrong_type =
+  error (Printf.sprintf "expected 'a -> 'a here !")
 
 (* Vérification des types d'un programme *)
 let type_prog prog =
@@ -29,25 +31,26 @@ let type_prog prog =
     | Uop(Not, e) -> check e TBool tenv; TBool
     | Bop((Add | Mul | Sub | Div | Mod), e1, e2) ->
        check e1 TInt tenv; check e2 TInt tenv; TInt
-    (*| Bop((Eq | Neq), e1, e2) -> let typ1 = type_expr e1 tenv in check e1 typ1 tenv; TBool*)
+    | Bop((Eq | Neq), e1, e2) -> let typ1 = type_expr e1 tenv in check e2 typ1 tenv; TBool
     | Bop((Lt | Le), e1 , e2) -> check e1 TInt tenv; check e2 TInt tenv; TBool
     | Bop((And | Or), e1 , e2) -> check e1 TBool tenv; check e2 TBool tenv; TBool
-    | Var x -> type_expr (SymTbl.find x tenv) tenv
-    (*| Let(x, e1, e2) ->
-      let t1 = type_expr e1  tenv in
+    | Var x -> SymTbl.find x tenv
+    | Let(x, e1, e2) ->
+      let t1 = type_expr e1 tenv in
       let t2 = type_expr e2 (SymTbl.add x t1 tenv) in t2
     | If(e0, e1, e2) ->
       let t1 = type_expr e1 tenv in check e2 t1 tenv;
       check e0 TBool tenv; t1
-    | Fun(x, t1, e) -> let t2 = type_expr e (SymTbl.add x t tenv) in TFun(t1, t2)
-    | App(e1, e2) ->
-      let Fun(t2, t1) = type_expr e1 tenv in
-      check e2 t2 tenv; t1
+    | Fun(x, t1, e) -> let t2 = type_expr e (SymTbl.add x t1 tenv) in TFun(t1, t2)
+    | App(e1, e2) -> begin
+      match type_expr e1 tenv with
+        | TFun(t2, t1) -> check e2 t2 tenv; t1
+        | _ -> wrong_type
+      end
     | Seq(e1, e2) ->
       let t1 = type_expr e1 tenv in
-      if t1 <> TUnit then (Printf.sprintf "expected type Unit but got %s"  (typ_to_string t1));
-      type_expr e2 tenv*)
+      if t1 <> TUnit then (Printf.printf "expected type Unit but got %s"  (typ_to_string t1));
+      type_expr e2 tenv
     | _ -> TUnit
-    (* il manque struct*)
   in
   type_expr prog.code SymTbl.empty
