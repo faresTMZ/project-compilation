@@ -3,6 +3,7 @@
  (names mmli mmlcat))
 
 (menhir
+ (flags -v)
  (modules mmlparser))
 
 (ocamllex
