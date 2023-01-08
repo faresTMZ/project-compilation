@@ -18,6 +18,10 @@ let type_prog prog =
   let rec check e typ tenv =
     let typ_e = type_expr e tenv in
       if typ_e <> typ then type_error typ_e typ
+  
+  (* and let rec type_struct s tenv = match s with
+    | [] -> TStrct
+    |  *)
 
   (* Calcule le type de l'expression [e] *)
   and type_expr e tenv = match e with
@@ -51,10 +55,7 @@ let type_prog prog =
       if t1 <> TUnit then (Printf.printf "expected type Unit but got %s"  (typ_to_string t1));
       type_expr e2 tenv
     | Fix (x, t1, e) -> type_expr e (SymTbl.add x t1 tenv)
-    (* | Strct s ->   ; TStrct s
-    | GetF (e, x) -> check e TStrct(e) tenv; type_expr e.x tenv
-    | SetF (e1, x, e2) -> check e1 TStrct tenv; *)
+    (* | Strct s -> List.fold_left (fun x -> check ) s *)
     | _ -> TInt
-
   in
   type_expr prog.code SymTbl.empty

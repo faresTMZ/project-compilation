@@ -15,8 +15,9 @@
 %token EOF
 
 %left CST BOOL
-%left SEMICOLON LPAR LBRACKET IDENT IN THEN RARROW LARROW PAR
+%left LPAR LBRACKET IDENT IN THEN RARROW LARROW PAR
 %left ELSE
+%left SEMICOLON
 %left NEQUAL INFERIOR IEQUAL DEQUAL
 %left MOD
 %left PLUS MINUS OR
@@ -40,6 +41,10 @@ program:
     failwith message }
 ;
 
+type_def: TYPE s1=IDENT EQUAL LBRACKET lH=type_args lT=list(type_args) RBRACKET { s1, lH::lT};
+
+type_args: m=option(MUTABLE) s2=IDENT COLON t=typ SEMICOLON { s2, t, is_some(m) };
+
 simple_expression:
 | n=CST { Int(n) }
 | b=BOOL { Bool(b) }
@@ -49,6 +54,8 @@ simple_expression:
 | LBRACKET lH=struct_args lT=list(struct_args) RBRACKET { Strct (lH :: lT) }
 | LPAR e=expression RPAR { e }
 ;
+
+struct_args: i=IDENT EQUAL e=expression SEMICOLON { i, e };
 
 expression:
 | e=simple_expression { e }
@@ -65,12 +72,6 @@ expression:
 ;
 
 let_args: LPAR IDENT COLON typ RPAR {};
-
-type_def: TYPE s1=IDENT EQUAL LBRACKET lH=type_args lT=list(type_args) RBRACKET { s1, lH::lT};
-
-type_args: m=option(MUTABLE) s2=IDENT COLON t=typ SEMICOLON { s2, t, is_some(m) };
-
-struct_args: i=IDENT EQUAL e=expression SEMICOLON { i, e };
 
 typ:
 | T_INT { TInt }
