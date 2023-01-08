@@ -25,14 +25,14 @@ let print_value = function
 (* Interprétation d'un programme complet *)
 let eval_prog (p: prog): value =
   
-  (* Initialisation de la mémoire globale
+  (* Initialisation de la mémoire globale *)
   let (mem: (int, heap_value) Hashtbl.t) = Hashtbl.create 16 in
 
   (* Création de nouvelles adresses *)
-  let new_ptr =
+  (* let new_ptr =
     let cpt = ref 0 in
     fun () -> incr cpt; !cpt
-  in *)
+  in  *)
  
 
   (* Interprétation d'une expression, en fonction d'un environnement
@@ -59,7 +59,11 @@ let eval_prog (p: prog): value =
     | Let(x, e1, e2) -> let eval1 = eval e1 env in
       eval e2 (Env.add x eval1 env)
     | If(e1, e2, e3) -> if (evalb e1 env) then (eval e2 env) else (eval e3 env)
-    (* | App(e1, e2) -> 
+    (* | Fun(s, t, e) -> 
+      let e1 = VClos(param, body, env) in 
+      let new_a = new_ptr in
+      mem.add (new_a, e1)
+    | App(e1, e2) -> 
       let e2 = eval e2 env in
       let (VClos(param, body, env)) = eval e1 env in
       eval (Env.add param e2 env) body *)
