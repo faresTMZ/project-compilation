@@ -51,8 +51,7 @@ let type_prog prog =
       if t1 <> TUnit then (Printf.printf "expected type Unit but got %s"  (typ_to_string t1));
       type_expr e2 tenv
     | Fix (x, t1, e) -> type_expr e (SymTbl.add x t1 tenv)
-    (* 
-    | Strct s ->   ; TStrct s
+    (* | Strct s ->   ; TStrct s
     | GetF (e, x) -> check e TStrct(e) tenv; type_expr e.x tenv
     | SetF (e1, x, e2) -> check e1 TStrct tenv; *)
     | _ -> TInt

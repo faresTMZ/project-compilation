@@ -2,19 +2,20 @@
 
   open Lexing
   open Mml
+  open Option
 
 %}
 
 %token PLUS STAR NOT MINUS EQUAL SLASH DEQUAL OR MOD INFERIOR IEQUAL NEQUAL AND
 %token LPAR RPAR DOT RARROW LARROW COLON SEMICOLON LBRACKET RBRACKET
-%token IF THEN ELSE LET REC IN FUN TYPE MUTABLE UNIT INT
+%token IF THEN ELSE LET REC IN FUN TYPE MUTABLE T_UNIT T_INT T_BOOL PAR
 %token <int> CST
 %token <string> IDENT
 %token <bool> BOOL
 %token EOF
 
 %left CST BOOL
-%left SEMICOLON LPAR LBRACKET IDENT IN THEN RARROW LARROW
+%left SEMICOLON LPAR LBRACKET IDENT IN THEN RARROW LARROW PAR
 %left ELSE
 %left NEQUAL INFERIOR IEQUAL DEQUAL
 %left MOD
@@ -28,7 +29,7 @@
 %%
 
 program:
-| code=expression EOF { {types=[]; code} }
+| typesL=list(type_def) code=expression EOF { {types=typesL; code} }
 | error
   { let pos = $startpos in
     let message = Printf.sprintf
@@ -42,10 +43,10 @@ program:
 simple_expression:
 | n=CST { Int(n) }
 | b=BOOL { Bool(b) }
-| LPAR RPAR { Unit }
+| PAR { Unit }
 | s=IDENT { Var(s) }
 | s_e=simple_expression DOT s=IDENT { GetF(s_e, s) }
-| LBRACKET l=list(i=IDENT EQUAL e=expression SEMICOLON { i, e } ) RBRACKET { Strct (l) }
+| LBRACKET lH=struct_args lT=list(struct_args) RBRACKET { Strct (lH :: lT) }
 | LPAR e=expression RPAR { e }
 ;
 
@@ -63,16 +64,18 @@ expression:
 | e1=expression SEMICOLON e2=expression { Seq (e1, e2) }
 ;
 
-let_args: LPAR IDENT COLON typ RPAR {}
+let_args: LPAR IDENT COLON typ RPAR {};
 
-type_def: TYPE s1=IDENT EQUAL LBRACKET type_args list(type_args) RBRACKET {};
+type_def: TYPE s1=IDENT EQUAL LBRACKET lH=type_args lT=list(type_args) RBRACKET { s1, lH::lT};
 
-type_args: option(MUTABLE) s2=IDENT COLON t=typ SEMICOLON {};
+type_args: m=option(MUTABLE) s2=IDENT COLON t=typ SEMICOLON { s2, t, is_some(m) };
+
+struct_args: i=IDENT EQUAL e=expression SEMICOLON { i, e };
 
 typ:
-| INT { TInt }
-| BOOL { TBool }
-| UNIT { TUnit }
+| T_INT { TInt }
+| T_BOOL { TBool }
+| T_UNIT { TUnit }
 | s=IDENT { TStrct(s) }
 | t1=typ RARROW t2=typ { TFun(t1, t2) }
 | LPAR t=typ RPAR { t }

@@ -9,8 +9,8 @@
     let h = Hashtbl.create 17 in
     List.iter (fun (s, k) -> Hashtbl.add h s k)
       [ 
-        (* "true", TRUE;
-        "false", FALSE; *)
+        "true", BOOL(true);
+        "false", BOOL(false);
         "fun", FUN;
         "let", LET;
         "rec", REC;
@@ -21,9 +21,9 @@
         "mod", MOD;
         "not", NOT;
         "type", TYPE;
-        "int", INT;
-        (* "bool", BOOL; *)
-        "unit", UNIT;
+        "int", T_INT;
+        "bool", T_BOOL;
+        "unit", T_UNIT;
         "mutable", MUTABLE;
       ] ;
     fun s ->
@@ -42,7 +42,7 @@ rule token = parse
         { new_line lexbuf; token lexbuf }
     | [' ' '\t' '\r']+
         { token lexbuf }
-    | "(*" 
+    | "(*"
         { comment lexbuf; token lexbuf }
     | number as n
         { CST(int_of_string n) }
@@ -87,7 +87,7 @@ rule token = parse
     | "->"
         { RARROW }
     | "()"
-        { UNIT }
+        { PAR }
     | ident as i
         { keyword_or_ident i }
     | _
