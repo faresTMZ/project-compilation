@@ -1,0 +1,4 @@
+type abeille = { dard: bool; }
+type frelon = { dard: bool; mechant: int; }
+
+let a = { dard = true; mechant = 0; } in a.mechant

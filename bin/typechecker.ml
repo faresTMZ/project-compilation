@@ -14,20 +14,11 @@ let type_error ty_actual ty_expected =
   error (Printf.sprintf "expected %s but got %s" 
            (typ_to_string ty_expected) (typ_to_string ty_actual))
 
-let expected_tfun =
-  error (Printf.sprintf "expected TFun")
-
-  let redundance_type_error typ_name =
+let redundance_type_error typ_name =
   error (Printf.sprintf "The type %s is already declared." typ_name)
 
-let uncorrect_type_error = 
-  error (Printf.sprintf "The structure assignation doesn't correspond to any custom types declaration.")
-
 let not_mutable_type_error field =
-  error (Printf.sprintf "The field %s isn't mutable." field)
-
-let expected_tstruct =
-  error (Printf.sprintf "expected TStrct") 
+  error (Printf.sprintf "The field %s isn't mutable." field) 
 
 (* Vérification des types d'un programme *)
 let type_prog prog =
@@ -103,7 +94,7 @@ let type_prog prog =
         | TFun(t2, t1) -> 
           let typ_e2 = type_expr e2 tenv in
           if t2 = typ_e2 then t1 else type_error t2 typ_e2
-        | _ -> expected_tfun
+        | _ -> error (Printf.sprintf "expected TFun")
       end
     | Seq (e1, e2) ->
       let t1 = type_expr e1 tenv in
@@ -113,20 +104,20 @@ let type_prog prog =
     | Strct s ->
       let m = check_strct_types s tenv in
       if (SymTbl.cardinal m <> 1) then
-      uncorrect_type_error else
+      error (Printf.sprintf "The structure assignation doesn't correspond to any custom types declaration.") else
       let (key, _) = (SymTbl.choose m) in TStrct key
     | GetF (e, x) -> begin
       match type_expr e tenv with
         | TStrct s ->
           let (t, _) = SymTbl.find x (SymTbl.find s type_map) in t
-        | _ -> expected_tstruct
+        | _ -> error (Printf.sprintf "expected TStrct")
       end
     | SetF (e, x, _) -> begin
       match type_expr e tenv with
         | TStrct s ->
           let (_, mut) = SymTbl.find x (SymTbl.find s type_map) in
           if mut then TUnit else not_mutable_type_error x 
-        | _ -> expected_tstruct
+        | _ -> error (Printf.sprintf "expected TStrct")
       end
 
   in

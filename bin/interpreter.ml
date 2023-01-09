@@ -1,6 +1,7 @@
 (* Interprète Mini-ML *)
 
 open Mml
+open Option
 
 (* Environnement : associe des valeurs à des noms de variables *)
 module Env = Map.Make(String)
@@ -29,10 +30,10 @@ let eval_prog (p: prog): value =
   let (mem: (int, heap_value) Hashtbl.t) = Hashtbl.create 16 in
 
   (* Création de nouvelles adresses *)
-  (* let new_ptr =
+  let new_ptr =
     let cpt = ref 0 in
     fun () -> incr cpt; !cpt
-  in  *)
+  in 
  
 
   (* Interprétation d'une expression, en fonction d'un environnement
@@ -51,32 +52,53 @@ let eval_prog (p: prog): value =
     | Bop(Mod, e1, e2) -> VInt (evali e1 env mod evali e2 env)
     | Bop(Lt, e1, e2) -> VBool (evali e1 env < evali e2 env)
     | Bop(Le, e1, e2) -> VBool (evali e1 env <= evali e2 env)
-    | Bop(Eq, e1, e2) -> VBool (evalb e2 env = evalb e1 env)
-    | Bop(Neq, e1, e2) -> VBool (evalb e2 env <> evalb e1 env)
+    | Bop(Eq, e1, e2) -> begin
+      match eval e1 env with
+        | VInt n1 -> begin
+          match eval e2 env with
+            | VInt n2 -> VBool (n1 = n2)
+            | _ -> assert false
+          end
+        | VBool b1 -> begin
+          match eval e2 env with
+            | VBool b2 -> VBool (b1 = b2)
+            | _ -> assert false
+          end
+        | _ -> assert false
+      end
+    | Bop(Neq, e1, e2) -> begin
+      match eval e1 env with
+        | VInt n1 -> begin 
+          match eval e2 env with
+            | VInt n2 -> VBool (n1 <> n2)
+            | _ -> assert false
+          end
+        | VBool b1 -> begin
+          match eval e2 env with
+            | VBool b2 -> VBool (b1 <> b2)
+            | _ -> assert false
+          end
+        | _ -> assert false
+      end
     | Bop(And, e1, e2) -> VBool (evalb e2 env && evalb e1 env)
     | Bop(Or, e1, e2) -> VBool (evalb e2 env || evalb e1 env)
     | Var(x) -> Env.find x env
     | Let(x, e1, e2) -> let eval1 = eval e1 env in
       eval e2 (Env.add x eval1 env)
     | If(e1, e2, e3) -> if (evalb e1 env) then (eval e2 env) else (eval e3 env)
-    (* | Fun(s, t, e) -> 
-      let e1 = VClos(param, body, env) in 
-      let new_a = new_ptr in
-      mem.add (new_a, e1)
-    | App(e1, e2) -> 
-      let e2 = eval e2 env in
-      let (VClos(param, body, env)) = eval e1 env in
-      eval (Env.add param e2 env) body *)
-    (* | Fun(s, t, e) ->
-
-    | App(e1, e2) -> *)
-      (* let eval2 = eval e2 env in
-      (evalf e1) eval2 *)
-    (* | Fix(s, t, e) ->
-    | Strct() ->
-    | GetF(e, s) ->
-    | SetF(e, s, e) -> *)
-    (* | Seq(e1, e2) -> eval e1 env; eval e2 env *)
+    | Fun (s, _, e) -> 
+      let addr = new_ptr() in
+      Hashtbl.add mem addr (VClos(s, e, env)); VPtr addr
+    | App (e1, e2) ->
+      let addr = evalptr e1 env in
+      let eval2 = eval e2 env in
+      let v = Hashtbl.find mem addr in begin
+      match v with 
+        | VClos (x, eval1, env1) -> eval eval1 (Env.add x eval2 env1)
+        | _ -> assert false
+      end
+   
+    | Seq(e1, e2) -> let _ = eval e1 env in eval e2 env
     | _ -> VInt 1
     
 
@@ -91,10 +113,13 @@ let eval_prog (p: prog): value =
     match eval e env with
     | VBool b -> b
     | _ -> assert false
+
+  and evalptr (e: expr) (env: value Env.t): int =
+    match eval e env with
+    | VPtr p ->
+      let x = Hashtbl.find_opt mem p in
+      if (is_some(x)) then p else assert false
+    | _ -> assert false
   in
-  (* Vérifie que l'expression soit bien une cloôture fonctionnelle *)
-  (* and evalf (e: expr) (env: value Env.t): unit =
-      match eval e env with
-      | VPtr p -> if mem.find t 
-      | _ -> assert false *)
+
   eval p.code Env.empty
