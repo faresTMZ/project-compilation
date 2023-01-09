@@ -65,13 +65,13 @@ expression:
 | IF e1=expression THEN e2=expression { If (e1, e2, Unit) }
 | IF e1=expression THEN e2=expression ELSE e3=expression { If (e1, e2, e3) }
 | FUN LPAR s=IDENT COLON t=typ RPAR RARROW e=expression { Fun (s, t, e) }
-| LET s=IDENT list(let_args {} ) EQUAL e1=expression IN e2=expression { Let (s, e1, e2) }
-| LET REC s=IDENT list(let_args {}) COLON typ EQUAL e1=expression IN e2=expression { Let (s, e1, e2) }
+| LET s=IDENT list(let_args) EQUAL e1=expression IN e2=expression { Let (s, e1, e2) }
+| LET REC s=IDENT list(let_args) COLON t=typ EQUAL e1=expression IN e2=expression { Let (s, Fix(s, t, e1), e2) }
 | s_e=simple_expression DOT s=IDENT LARROW e=expression { SetF (s_e, s, e) }
 | e1=expression SEMICOLON e2=expression { Seq (e1, e2) }
 ;
 
-let_args: LPAR IDENT COLON typ RPAR {};
+let_args: LPAR x=IDENT COLON t=typ RPAR { x, t };
 
 typ:
 | T_INT { TInt }
@@ -81,7 +81,6 @@ typ:
 | t1=typ RARROW t2=typ { TFun(t1, t2) }
 | LPAR t=typ RPAR { t }
 ;
-
 
 %inline unop:
 | MINUS { Neg }

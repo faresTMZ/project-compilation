@@ -97,9 +97,30 @@ let eval_prog (p: prog): value =
         | VClos (x, eval1, env1) -> eval eval1 (Env.add x eval2 env1)
         | _ -> assert false
       end
-   
+    (* | Fix (s, t, e) -> VInt 1 *)
+    | Strct l ->
+      let addr = new_ptr() in
+      let h = List.fold_left ( fun h s ->
+          let (x, e) = s in Hashtbl.add h x (eval e env); h
+        ) (Hashtbl.create 16) l in
+      Hashtbl.add mem addr (VStrct(h)); VPtr addr
+    | GetF (e, x) ->
+      let p = evalptr e env in
+      let s = Hashtbl.find mem p in begin
+      match s with
+        | VStrct h -> Hashtbl.find h x
+        | _ -> assert false
+      end
+    | SetF (e1, x, e2) ->
+      let eval2 = eval e2 env in
+      let p = evalptr e1 env in
+      let s = Hashtbl.find mem p in begin
+      match s with
+        | VStrct h -> Hashtbl.replace h x eval2; VUnit
+        | _ -> assert false
+      end
     | Seq(e1, e2) -> let _ = eval e1 env in eval e2 env
-    | _ -> VInt 1
+    | _ -> VInt 222222
     
 
   (* Évaluation d'une expression dont la valeur est supposée entière *)
@@ -120,6 +141,7 @@ let eval_prog (p: prog): value =
       let x = Hashtbl.find_opt mem p in
       if (is_some(x)) then p else assert false
     | _ -> assert false
+
   in
 
   eval p.code Env.empty
